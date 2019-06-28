@@ -1,0 +1,20 @@
+{
+  "name": "computor",
+  "version": "1.0.0",
+  "description": "An educationnal purpose project to learn how to implement an algorithm who solve polynomial equation.",
+  "main": "index.js",
+  "scripts": {
+    "test": "run test",
+    "dev": "rimraf dist && tsc && node dist/index.js",
+    "start": "node dist/index.js"
+  },
+  "author": "tiboitel",
+  "license": "ISC",
+  "devDependencies": {
+    "rimraf": "^2.6.3",
+    "typescript": "^3.3.3"
+  },
+  "dependencies": {
+    "@types/node": "^11.9.4"
+  }
+}

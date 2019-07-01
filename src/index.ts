@@ -28,7 +28,7 @@ async function parse(polynomial: string): Promise<string[][]>
 	return values;
 }
 
-async function reduce(values: string[][]): Promise<string[][]>
+async function simplify(values: string[][]): Promise<string[][]>
 {
 	// BAD BAD RESULT	
 	values.reduce(function(prev, curr)
@@ -46,8 +46,23 @@ async function reduce(values: string[][]): Promise<string[][]>
 			prev.push(curr[0]);
 		return (prev);
 	}, []);
-	console.log(values);	
 	return values;
+}
+
+
+// Need to rename this function to something better.
+async function vstr(polynomialLeft: string[][]): Promise<string>
+{
+	if (polynomialLeft.length == 0)
+		return ("0 * X^0");
+	let str = polynomialLeft[0][0] + " * X^" + polynomialLeft[0][1];
+	polynomialLeft.forEach(function(value, index) {
+		if (index == 0)
+			return ;
+		str += (parseInt(value[0]) < 0)  ? " - " + -value[0] : " + " + value[0];
+		str += " * X^" + value[1];
+	});
+	return str;
 }
 
 async function equalize(polynomialLeft: string[][], polynomialRight: string[][]): Promise<string[][]>
@@ -73,28 +88,58 @@ async function equalize(polynomialLeft: string[][], polynomialRight: string[][])
 	return polynomialLeft;
 }
 
-async function resolve(): Promise<string>
+async function resolve(polynomialLeft: string[][], polynomialDegree: number): Promise<string>
 {
-	let message:string;
-	message = "... Resolution ...";
+	let	message:string;
+	let	delta:number;
+	let	values:number[] = new Array();
+
+	for (let i = 3; i > 0; i--)
+	{
+		let tmp = polynomialLeft.find((x) => (parseInt(x[1]) == i));
+		values.push((tmp !== undefined) ? parseInt(tmp[0]) : 0);
+		console.log(values);
+	}
+	if (polynomialDegree === 0)
+	{
+		message = (polynomialLeft.length != 0) ? "There is no solutions." : message = "Every real is a solution.";
+	}
+	else if (polynomialDegree === 1)
+	{
+		message = "Solution: " + values[2] / values[1];
+	}
+	else if (polynomialDegree === 2)
+	{
+		message = "Not implemented yet.";
+	}
 	return message;	
 }
 
 async function main(equation: string): Promise<void>
 {
-	let polynomialLeft;
-	let polynomialRight;
-	let currentPolynomial;
-	let sides = equation.split(" ").join("").split("=");
-	
+	let	polynomialLeft;
+	let	polynomialRight;
+	let	leftValues;
+	let	rightValues;
+	let	currentPolynomial;
+	let	polynomialDegree: number = 0;
+	let	reducedForm;
+	let	sides = equation.split(" ").join("").split("=");
+
 	polynomialLeft = sides[0];
 	polynomialRight = sides[1];
-	let leftValues = await parse(polynomialLeft);
-	let rightValues = await parse(polynomialRight);
-	leftValues = await reduce(leftValues);
-	rightValues = await reduce(rightValues);
+	leftValues = await parse(polynomialLeft);
+	rightValues = await parse(polynomialRight);
+	leftValues = await simplify(leftValues);
+	rightValues = await simplify(rightValues);
 	leftValues = await equalize(leftValues, rightValues);
-	console.log(leftValues);
+	reducedForm = await vstr(leftValues);
+	polynomialDegree = leftValues.reduce((prev, curr) => ((parseInt(curr[1]) > prev) ? parseInt(curr[1]) : prev), 0);
+	if (polynomialDegree > 2)
+		throw new Error("Impossible to solve an equation of the degree superior to 2.");
+	console.log("Reduced form: " + reducedForm + " = 0");
+	console.log("Polynomial degree: " + polynomialDegree);
+	console.log(await resolve(leftValues, polynomialDegree));
 	// Parse the equation.
 	// Reduce the equation.
 	// Resolve it.
